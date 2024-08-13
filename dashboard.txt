@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Dashboard</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Lora:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-image: url('https://www.example.com/background.jpg'); /* Add a background image */
+            background-size: cover;
+        }
+        h1 {
+            font-family: 'Lora', serif;
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+        #live-data {
+            margin: 20px;
+        }
+        .chart-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container p {
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .alert {
+            color: #e74c3c;
+            font-weight: bold;
+            background-color: rgba(231, 76, 60, 0.2);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px;
+        }
+        .logout {
+            margin-top: 20px;
+        }
+        .logout button {
+            padding: 10px;
+            background-color: #e74c3c;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .logout button:hover {
+            background-color: #c0392b;
+        }
+        .header-img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .footer-img {
+            width: 50px;
+            height: auto;
+            margin-top: 20px;
+        }
+        .control-buttons {
+            margin-top: 20px;
+        }
+        .control-buttons button {
+            padding: 10px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .start-button {
+            background-color: #2ecc71;
+        }
+        .start-button:hover {
+            background-color: #27ae60;
+        }
+        .stop-button {
+            background-color: #e74c3c;
+        }
+        .stop-button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <img src="https://www.example.com/header-image.jpg" alt="Dashboard Header" class="header-img"> <!-- Header Image -->
+    <h1>Welcome to the Sensor Data Dashboard</h1>
+    <div id="error" class="error"></div>
+    <div id="alert" class="alert"></div>
+    <div id="live-data">
+        <div class="chart-container">
+            <canvas id="temperatureChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="vibrationChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="currentChart"></canvas>
+        </div>
+    </div>
+    <div class="control-buttons">
+        <button class="start-button" onclick="controlLED('on')">Turn LED On</button>
+        <button class="stop-button" onclick="controlLED('off')">Turn LED Off</button>
+    </div>
+    <div class="logout">
+        <a href="/logout"><button>Logout</button></a>
+    </div>
+    <img src="https://www.example.com/footer-icon.png" alt="Footer Icon" class="footer-img"> <!-- Footer Icon -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let temperatureData = [];
+        let vibrationData = [];
+        let currentData = [];
+        let labels = [];
+
+        const createGradient = (ctx, color1, color2) => {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            return gradient;
+        };
+
+        const temperatureChart = new Chart(document.getElementById('temperatureChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: temperatureData,
+                    borderColor: '#e74c3c',
+                    backgroundColor: createGradient(document.getElementById('temperatureChart').getContext('2d'), 'rgba(231, 76, 60, 0.2)', 'rgba(231, 76, 60, 0)'),
+                    borderWidth: 2,
+                    fill: true,
+                    pointBackgroundColor: '#e74c3c',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time', color: '#2c3e50' },
+                        ticks: { color: '#2c3e50' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Temperature (°C)', color: '#2c3e50' },
+                        ticks: { color: '#2c3e50' }
+                    }
+                }
+            }
+        });
+
+        const vibrationChart = new Chart(document.getElementById('vibrationChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Vibration',
+                    data: vibrationData,
+                    borderColor: '#3498db',
+                    backgroundColor: createGradient(document.getElementById('vibrationChart').getContext('2d'), 'rgba(52, 152, 219, 0.2)', 'rgba(52, 152, 219, 0)'),
+                    borderWidth: 2,
+                    fill: true,
+                    pointBackgroundColor: '#3498db',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time', color: '#2c3e50' },
+                        ticks: { color: '#2c3e50' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Vibration', color: '#2c3e50' },
+                        ticks: { color: '#2c3e50' }
+                    }
+                }
+            }
+        });
+
+        const currentChart = new Chart(document.getElementById('currentChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Current (A)',
+                    data: currentData,
+                    borderColor: '#2ecc71',
+                    backgroundColor: createGradient(document.getElementById('currentChart').getContext('2d'), 'rgba(46, 204, 113, 0.2)', 'rgba(46, 204, 113, 0)'),
+                    borderWidth: 2,
+                    fill: true,
+                    pointBackgroundColor: '#2ecc71',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time', color: '#2c3e50' },
+                        ticks: { color: '#2c3e50' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Current (A)', color: '#2c3e50' },
+                        ticks: { color: '#2c3e50' }
+                    }
+                }
+            }
+        });
+
+        async function fetchLiveData() {
+            try {
+                const response = await fetch('/live');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const timestamp = new Date(data.timestamp).toLocaleTimeString();
+                labels.push(timestamp);
+                temperatureData.push(data.temperature);
+                vibrationData.push(data.vibration);
+                currentData.push(data.current);
+
+                if (labels.length > 5) {
+                    labels.shift();
+                    temperatureData.shift();
+                    vibrationData.shift();
+                    currentData.shift();
+                }
+
+                temperatureChart.update();
+                vibrationChart.update();
+                currentChart.update();
+
+                if (data.alert) {
+                    document.getElementById('alert').textContent = data.alert;
+                } else {
+                    document.getElementById('alert').textContent = '';
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('error').textContent = 'Error fetching data. Please try again later.';
+            }
+        }
+
+        async function controlLED(state) {
+            try {
+                const response = await fetch(`/led/${state}`, { method: 'POST' });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const result = await response.json();
+                console.log(`LED ${state} successful`);
+                alert(`LED ${state} successful`);
+            } catch (error) {
+                console.error(`Error controlling LED: ${error}`);
+                alert(`Error controlling LED: ${error.message}`);
+            }
+        }
+
+        setInterval(fetchLiveData, 5000);  // Fetch live data every 5 seconds
+        document.addEventListener('DOMContentLoaded', fetchLiveData);
+    </script>
+</body>
+</html>
