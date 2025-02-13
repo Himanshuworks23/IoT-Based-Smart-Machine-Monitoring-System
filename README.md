@@ -1,10 +1,4 @@
 # IoT-Based-Smart-Machine-Monitoring-System
 
 Project Summary
-Collected data from various sensors deployed on a demo site.
-Stored collected data in a SQL database.
-Implemented real-time monitoring of sensor data on a user interface.
-Stored sensor data at the edge level on a Raspberry Pi device.
-Developed a predictive maintenance system utilizing the collected data.
-Enabled remote control of utilities (lights, machines) through a web-based dashboard.
-Leveraged AWS EC2 cloud services for remote control functionality.
+Developed an IoT-based smart machine monitoring system.  My project aimed to remotely monitor and analyze the performance of industrial machines, specifically focusing on vibration and temperature. I used an ESP32 microcontroller as the central processing unit, which collected sensor data from a vibration sensor (specifically, an accelerometer) and a temperature sensor.  I then transmitted this data to a cloud platform (ThingSpeak) using the ESP32's Wi-Fi capabilities.  On ThingSpeak, I visualized the data through charts and graphs, allowing for real-time monitoring of the machine's condition.  This setup enabled me to detect anomalies and potential failures early on, which could help prevent costly downtime and improve overall maintenance efficiency.  The system is designed to be low-cost and easily deployable, making it a practical solution for various industrial settings.
